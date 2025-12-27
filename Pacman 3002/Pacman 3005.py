@@ -12,7 +12,7 @@ pygame.mixer.init()
 TILE_SIZE = 30
 FPS = 60
 
-# Colors
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
@@ -22,9 +22,9 @@ GREEN = (0, 255, 0)
 PINK = (255, 182, 255)
 CYAN = (0, 255, 255)
 ORANGE = (255, 182, 85)
-DARK_BLUE = (0, 0, 139) # For scared ghosts
+DARK_BLUE = (0, 0, 139) 
 
-# Maps
+
 LEVELS = [
     [
         "WWWWWWWWWWWWWWWWWWWW",
@@ -67,22 +67,22 @@ LEVELS = [
     ]
 ]
 
-# Calculate screen dimensions based on the first map (assuming all are same size for now)
+
 MAP_HEIGHT = len(LEVELS[0])
 MAP_WIDTH = len(LEVELS[0][0])
 SCREEN_WIDTH = MAP_WIDTH * TILE_SIZE
 SCREEN_HEIGHT = MAP_HEIGHT * TILE_SIZE
 
-# Set up the screen
+
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pac-Man 3002")
 clock = pygame.time.Clock()
 
-# Sound Manager
+
 class SoundManager:
     def __init__(self):
         self.sounds = {}
-        # Try to load sounds if they exist, otherwise silent
+        
         sound_files = {
             'chomp': 'chomp.wav',
             'eat_ghost': 'eat_ghost.wav',
@@ -95,7 +95,7 @@ class SoundManager:
                 self.sounds[name] = pygame.mixer.Sound(file)
                 self.sounds[name].set_volume(0.3)
             except:
-                # print(f"Warning: Could not load sound {file}")
+                
                 self.sounds[name] = None
 
     def play(self, name):
@@ -142,19 +142,19 @@ class Ghost:
         self.speed = self.scared_speed
 
     def update(self, walls):
-        # Handle scared timer
+       
         if self.scared:
             if pygame.time.get_ticks() > self.scared_timer:
                 self.scared = False
                 self.color = self.normal_color
                 self.speed = self.normal_speed
 
-        # Move
+        
         new_x = self.rect.x + self.direction[0] * self.speed
         new_y = self.rect.y + self.direction[1] * self.speed
         new_rect = pygame.Rect(new_x, new_y, TILE_SIZE, TILE_SIZE)
 
-        # Check collision
+        
         collision = False
         for wall in walls:
             if new_rect.colliderect(wall):
@@ -164,49 +164,46 @@ class Ghost:
         if not collision:
             self.rect = new_rect
         else:
-            # Change direction on collision
+            
             self.change_direction()
 
     def draw(self, surface):
-        # Draw body (rounded top, rectangle bottom)
+        
         x, y = self.rect.x, self.rect.y
         w, h = TILE_SIZE, TILE_SIZE
         
-        # Head (semicircle)
+        
         pygame.draw.circle(surface, self.color, (x + w//2, y + h//2), w//2)
         
-        # Body (rectangle) - actually just fill the bottom half
+        
         pygame.draw.rect(surface, self.color, (x, y + h//2, w, h//2))
         
-        # Feet (3 small circles)
+        
         foot_radius = w // 6
         for i in range(3):
             pygame.draw.circle(surface, self.color, (x + (2*i + 1) * foot_radius, y + h), foot_radius)
             
-        # Eyes
+        
         eye_radius = w // 5
         pupil_radius = eye_radius // 2
         eye_offset_x = w // 4
         eye_offset_y = h // 4
         
-        # Eye positions
+       
         left_eye_pos = (x + w//2 - eye_offset_x, y + eye_offset_y + h//4)
         right_eye_pos = (x + w//2 + eye_offset_x, y + eye_offset_y + h//4)
         
-        # Draw Sclera (White part)
+        
         pygame.draw.circle(surface, WHITE, left_eye_pos, eye_radius)
         pygame.draw.circle(surface, WHITE, right_eye_pos, eye_radius)
         
-        # Draw Pupils (Blue part)
-        # Offset pupils based on direction
+       
         pupil_offset_x = self.direction[0] * 2
         pupil_offset_y = self.direction[1] * 2
         
         pupil_color = BLUE
         if self.scared:
-            pupil_color = WHITE # Scared ghosts have different eyes usually, but let's keep it simple or maybe empty eyes
-            # Actually scared ghosts are usually blue with white mouth/eyes. 
-            # Current implementation sets color to DARK_BLUE when scared.
+            pupil_color = WHITE 
         
         pygame.draw.circle(surface, pupil_color, (left_eye_pos[0] + pupil_offset_x, left_eye_pos[1] + pupil_offset_y), pupil_radius)
         pygame.draw.circle(surface, pupil_color, (right_eye_pos[0] + pupil_offset_x, right_eye_pos[1] + pupil_offset_y), pupil_radius)
@@ -236,7 +233,7 @@ class Player:
         self.mouth_open_angle = 0
 
     def update(self, walls):
-        # Animation
+        
         if self.direction != (0, 0):
             if self.mouth_opening:
                 self.mouth_open_angle += self.mouth_speed
@@ -249,14 +246,14 @@ class Player:
         else:
             self.mouth_open_angle = 0
 
-        # Handle immediate reversal
+        
         if self.next_direction != (0, 0):
             if (self.next_direction[0] == -self.direction[0] != 0) or \
                (self.next_direction[1] == -self.direction[1] != 0):
                 self.direction = self.next_direction
                 self.next_direction = (0, 0)
 
-        # Try to change direction if aligned with grid
+        
         if self.rect.x % TILE_SIZE == 0 and self.rect.y % TILE_SIZE == 0:
             if self.next_direction != (0, 0):
                 next_x = self.rect.x + self.next_direction[0] * TILE_SIZE
@@ -266,13 +263,13 @@ class Player:
                     self.direction = self.next_direction
                     self.next_direction = (0, 0)
 
-        # Move in current direction
+        
         if self.direction != (0, 0):
             new_x = self.rect.x + self.direction[0] * self.speed
             new_y = self.rect.y + self.direction[1] * self.speed
             new_rect = pygame.Rect(new_x, new_y, TILE_SIZE, TILE_SIZE)
 
-            # Check collision with walls
+            
             collision = False
             for wall in walls:
                 if new_rect.colliderect(wall):
@@ -282,7 +279,7 @@ class Player:
             if not collision:
                 self.rect = new_rect
             else:
-                # Align to grid and stop
+                
                 self.rect.x = (round(self.rect.x / TILE_SIZE)) * TILE_SIZE
                 self.rect.y = (round(self.rect.y / TILE_SIZE)) * TILE_SIZE
                 self.direction = (0, 0)
@@ -294,40 +291,36 @@ class Player:
         if self.mouth_open_angle == 0:
              pygame.draw.circle(surface, YELLOW, center, radius)
         else:
-            # Draw Pacman as a polygon (circle approximation) or circle with wedge removed
-            # Easiest: Draw circle, then draw black triangle for mouth
+            
             pygame.draw.circle(surface, YELLOW, center, radius)
             
-            # Calculate mouth triangle points
-            # Direction determines rotation
+            
             angle_offset = 0
-            if self.direction == (1, 0): # Right
+            if self.direction == (1, 0): 
                 angle_offset = 0
-            elif self.direction == (-1, 0): # Left
+            elif self.direction == (-1, 0): 
                 angle_offset = 180
-            elif self.direction == (0, -1): # Up
+            elif self.direction == (0, -1): 
                 angle_offset = 90
-            elif self.direction == (0, 1): # Down
+            elif self.direction == (0, 1): 
                 angle_offset = 270
             
-            # We need to draw a triangle that represents the mouth
-            # Points: Center, and two points on the circumference
+            
             
             p1 = center
             
-            # Angle 1
+            
             theta1 = math.radians(angle_offset - self.mouth_open_angle)
             x1 = center[0] + radius * math.cos(theta1)
-            y1 = center[1] - radius * math.sin(theta1) # y is inverted in pygame
+            y1 = center[1] - radius * math.sin(theta1) 
             
-            # Angle 2
+           
             theta2 = math.radians(angle_offset + self.mouth_open_angle)
             x2 = center[0] + radius * math.cos(theta2)
             y2 = center[1] - radius * math.sin(theta2)
             
             pygame.draw.polygon(surface, BLACK, [p1, (x1, y1), (x2, y2)])
 
-# Game States
 MENU = 0
 PLAYING = 1
 GAME_OVER = 2
@@ -358,7 +351,7 @@ def main():
     current_level_index = 0
     is_fullscreen = False
     
-    # Game State Variables
+    
     walls = []
     dots = []
     power_pellets = []
@@ -376,7 +369,7 @@ def main():
         player_pos = (1, 1)
         
         if level_index >= len(LEVELS):
-            return False # No more levels
+            return False 
 
         level_map = LEVELS[level_index]
         ghost_color_index = 0
@@ -398,7 +391,7 @@ def main():
                     ghosts.append(Ghost(col_idx, row_idx, ghost_colors[ghost_color_index % len(ghost_colors)]))
                     ghost_color_index += 1
         
-        # Preserve score if player exists, else create new
+        
         if player:
             score = player.score
             player = Player(player_pos[0], player_pos[1])
@@ -408,16 +401,16 @@ def main():
             
         return True
 
-    # Load first level
+   
     load_level(current_level_index)
 
-    # Fonts
+    
     font = pygame.font.SysFont('arial', 20)
     game_over_font = pygame.font.SysFont('arial', 48)
     title_font = pygame.font.SysFont('arial', 64, bold=True)
     
     while running:
-        # Event handling
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -454,14 +447,14 @@ def main():
             elif game_state == GAME_OVER or game_state == WIN:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
-                        # Restart from current level (preserve score)
+                        
                         load_level(current_level_index)
                         game_state = PLAYING
                     elif event.key == pygame.K_m:
                         game_state = MENU
 
         if game_state == PLAYING:
-            # Update
+            
             player.update(walls)
             
             for ghost in ghosts:
@@ -475,14 +468,14 @@ def main():
                         game_state = GAME_OVER
                         sound_manager.play('death')
 
-            # Check dot collision
+           
             for dot in dots[:]:
                 if player.rect.colliderect(dot):
                     dots.remove(dot)
                     player.score += 10
-                    # sound_manager.play('chomp') # Can be annoying if too frequent
+                   
 
-            # Check power pellet collision
+            
             for pellet in power_pellets[:]:
                 if player.rect.colliderect(pellet):
                     power_pellets.remove(pellet)
@@ -491,44 +484,44 @@ def main():
                     for ghost in ghosts:
                         ghost.make_scared()
             
-            # Check Level Complete
+         
             if len(dots) == 0 and len(power_pellets) == 0:
                 sound_manager.play('win')
                 current_level_index += 1
                 if not load_level(current_level_index):
                     game_state = WIN
                 else:
-                    # Small pause or transition could go here
+                
                     pygame.time.delay(1000)
                     player.reset_position()
 
-        # Drawing
+   
         screen.fill(BLACK)
         
         if game_state == MENU:
             draw_menu(screen, font, title_font)
         
         elif game_state == PLAYING or game_state == GAME_OVER or game_state == WIN:
-            # Draw walls
+          
             for wall in walls:
                 pygame.draw.rect(screen, BLUE, wall, border_radius=4)
                 
-            # Draw dots
+           
             for dot in dots:
                 pygame.draw.circle(screen, WHITE, dot.center, 2)
 
-            # Draw power pellets
+            
             for pellet in power_pellets:
                 pygame.draw.circle(screen, WHITE, pellet.center, 6)
                 
-            # Draw player
+            
             player.draw(screen)
             
-            # Draw ghosts
+            
             for ghost in ghosts:
                 ghost.draw(screen)
 
-            # Draw score and level
+            
             score_text = font.render(f"Score: {player.score}  Level: {current_level_index + 1}", True, WHITE)
             screen.blit(score_text, (10, 10))
 
